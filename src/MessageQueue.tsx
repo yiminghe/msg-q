@@ -23,9 +23,9 @@ const DEBUG_INFO_LIMIT = 32;
 
 const __DEV__ = process.env.NODE_ENV !== 'production';
 
-interface ISpyData {
+export interface ISpyData {
   type: number;
-  module?: string;
+  module?: string|null;
   method: string|number;
   args: any;
 }
@@ -47,7 +47,7 @@ class MessageQueue {
           `(${JSON.stringify(info.args)})`);
       };
     } else if (spyOrToggle === false) {
-      MessageQueue.prototype._spy = null;
+      MessageQueue.prototype._spy = undefined;
     } else {
       MessageQueue.prototype._spy = spyOrToggle;
     }
