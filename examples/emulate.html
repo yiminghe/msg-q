@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>emulate.js - example - msg-q@0.1.0</title>
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link href="https://a.alipayobjects.com/normalize.css/3.0.1/normalize.css" rel="stylesheet"/>
+  <style>
+    .highlight pre {
+      padding: .8em 1em;
+      font: 14px/20px Consolas, Monaco, 'Andale Mono', monospace;
+      border: 1px solid #e5e8ec;
+      border-radius: 3px;
+      background-color: #21221d;
+      background-image: -webkit-linear-gradient(#21221d 50%, #272822 50%);
+      background-image: -moz-linear-gradient(#21221d 50%, #272822 50%);
+      background-image: -ms-linear-gradient(#21221d 50%, #272822 50%);
+      background-image: -o-linear-gradient(#21221d 50%, #272822 50%);
+      background-image: linear-gradient(#21221d 50%, #272822 50%);
+      background-size: 40px 40px;
+      background-origin: content-box;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .highlight pre > code {
+      font-family: inherit;
+      direction: ltr;
+      text-align: left;
+      white-space: pre;
+      word-spacing: normal;
+      vertical-align: 2px;
+      display: block;
+      -moz-tab-size: 2;
+      -o-tab-size: 2;
+      tab-size: 2;
+      -webkit-hyphens: none;
+      -moz-hyphens: none;
+      -ms-hyphens: none;
+      hyphens: none;
+      color: #E5E5C2;
+    }
+  </style>
+  <style>
+/*
+
+Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-license.org/
+
+*/
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #23241f;
+  -webkit-text-size-adjust: none;
+}
+
+.hljs,
+.hljs-tag,
+.css .hljs-rule,
+.css .hljs-value,
+.aspectj .hljs-function,
+.css .hljs-function
+.hljs-preprocessor,
+.hljs-pragma {
+  color: #f8f8f2;
+}
+
+.hljs-strongemphasis,
+.hljs-strong,
+.hljs-emphasis {
+  color: #a8a8a2;
+}
+
+.hljs-bullet,
+.hljs-blockquote,
+.hljs-horizontal_rule,
+.hljs-number,
+.hljs-regexp,
+.alias .hljs-keyword,
+.hljs-literal,
+.hljs-hexcolor {
+  color: #ae81ff;
+}
+
+.hljs-code,
+.hljs-title,
+.css .hljs-class,
+.hljs-class .hljs-title:last-child {
+  color: #a6e22e;
+  /*color: #e6db74;*/
+}
+
+.hljs-link_url {
+  font-size: 80%;
+}
+
+.hljs-strong,
+.hljs-strongemphasis {
+  font-weight: bold;
+}
+
+.hljs-emphasis,
+.hljs-strongemphasis,
+.hljs-class .hljs-title:last-child,
+.hljs-typename {
+  font-style: italic;
+}
+
+.hljs-keyword,
+.ruby .hljs-class .hljs-keyword:first-child,
+.ruby .hljs-function .hljs-keyword,
+.hljs-function,
+.hljs-change,
+.hljs-winutils,
+.hljs-flow,
+.nginx .hljs-title,
+.tex .hljs-special,
+.hljs-header,
+.hljs-symbol,
+.hljs-symbol .hljs-string,
+.hljs-tag .hljs-title,
+.hljs-value,
+.alias .hljs-keyword:first-child,
+.css .hljs-tag,
+.css .unit,
+.css .hljs-important {
+  color: #f92672;
+}
+
+.hljs-function .hljs-keyword,
+.hljs-class .hljs-keyword:first-child,
+.hljs-aspect .hljs-keyword:first-child,
+.hljs-constant,
+.hljs-typename,
+.hljs-name,
+.css .hljs-attribute {
+  color: #66d9ef;
+}
+
+.hljs-variable,
+.hljs-params,
+.hljs-class .hljs-title,
+.hljs-aspect .hljs-title {
+  color: #f8f8f2;
+}
+
+.hljs-tag .hljs-value,
+.hljs-string,
+.css .hljs-id,
+.hljs-subst,
+.hljs-type,
+.ruby .hljs-class .hljs-parent,
+.django .hljs-template_tag,
+.django .hljs-variable,
+.smalltalk .hljs-class,
+.django .hljs-filter .hljs-argument,
+.smalltalk .hljs-localvars,
+.smalltalk .hljs-array,
+.hljs-attr_selector,
+.hljs-pseudo,
+.hljs-addition,
+.hljs-stream,
+.hljs-envvar,
+.apache .hljs-tag,
+.apache .hljs-cbracket,
+.tex .hljs-command,
+.hljs-prompt,
+.hljs-link_label,
+.hljs-link_url {
+  color: #e6db74;
+}
+
+.hljs-comment,
+.hljs-annotation,
+.hljs-decorator,
+.hljs-pi,
+.hljs-doctype,
+.hljs-deletion,
+.hljs-shebang,
+.apache .hljs-sqbracket,
+.tex .hljs-formula {
+  color: #75715e;
+}
+
+.coffeescript .javascript,
+.javascript .xml,
+.tex .hljs-formula,
+.xml .javascript,
+.xml .vbscript,
+.xml .css,
+.xml .hljs-cdata,
+.xml .php,
+.php .xml {
+  opacity: 0.5;
+}
+/***********/
+.hljs-attribute{
+  color: #a6e22e;
+}
+/***** node keyword ******/
+.hljs-built_in{
+  color: #3396dc;
+  font-weight: bold;
+}
+  </style>
+  <style>
+    .container {
+      width: 86%;
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .header p {
+      color: #666;
+    }
+
+    .example {
+      padding: 20px 0;
+    }
+  </style>
+
+  <script>
+    // Console-polyfill. MIT license.
+    // https://github.com/paulmillr/console-polyfill
+    // Make it safe to do console.log() always.
+    (function (global) {
+      'use strict';
+      global.console = global.console || {};
+      var con = global.console;
+      var prop, method;
+      var empty = {};
+      var dummy = function () {
+      };
+      var properties = 'memory'.split(',');
+      var methods = ('assert,clear,count,debug,dir,dirxml,error,exception,group,' +
+      'groupCollapsed,groupEnd,info,log,markTimeline,profile,profiles,profileEnd,' +
+      'show,table,time,timeEnd,timeline,timelineEnd,timeStamp,trace,warn').split(',');
+      while (prop = properties.pop()) con[prop] = con[prop] || empty;
+      while (method = methods.pop()) con[method] = con[method] || dummy;
+    })(typeof window === 'undefined' ? this : window);
+    // Using `this` for web workers while maintaining compatibility with browser
+    // targeted script loaders such as Browserify or Webpack where the only way to
+    // get to the global object is via `window`.
+  </script>
+  <!--[if lt IE 9]>
+  <script src="https://a.alipayobjects.com/??es5-shim/4.0.5/es5-shim.js,es5-shim/4.0.5/es5-sham.js,html5shiv/3.7.2/src/html5shiv.js"></script>
+  <![endif]-->
+  <script src="https://as.alipayobjects.com/g/component/??modernizr/2.8.3/modernizr.js,fastclick/1.0.6/fastclick.js"></script>
+  <script>
+  if(!window.Promise) {
+    document.writeln('<script src="https://as.alipayobjects.com/g/component/es6-promise/3.2.2/es6-promise.min.js"'+'>'+'<'+'/'+'script>');
+  }
+  </script>
+  
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>msg-q@0.1.0</h1>
+
+      <p>Batched MessageQueue</p>
+    </div>
+    <div class="example" id="__react-content"></div>
+
+    <div class="highlight"><pre><code language="js"><span class="hljs-comment">/* tslint:disable:no-console no-bitwise */</span>
+
+<span class="hljs-keyword">import</span> { MessageQueue } <span class="hljs-keyword">from</span> <span class="hljs-string">'msg-q'</span>;
+
+<span class="hljs-comment">// ---------------------------------- native</span>
+<span class="hljs-keyword">const</span> realModules = {
+  module1: {
+    method1(seq) {
+      <span class="hljs-built_in">console</span>.info(<span class="hljs-string">'[remote] module1 method1 implementation'</span>, seq);
+    },
+  },
+
+  module2: {
+    method2(seq, callback) {
+      <span class="hljs-built_in">console</span>.info(<span class="hljs-string">'[remote] module2 method2 implementation'</span>, seq);
+      callback(seq + <span class="hljs-number">1</span>);
+    },
+  },
+
+  timer: {
+    setTimeout(m, f) {
+      <span class="hljs-built_in">window</span>.setTimeout(f, m);
+    },
+  },
+};
+
+<span class="hljs-keyword">const</span> moduleInfo = {};
+
+<span class="hljs-built_in">Object</span>.keys(realModules).forEach(m =&gt; {
+  moduleInfo[m] = <span class="hljs-built_in">Object</span>.keys(realModules[m]);
+});
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">nativeFlushQueueImmediate</span>(<span class="hljs-params">queue</span>) </span>{
+  <span class="hljs-keyword">if</span> (!queue) {
+    <span class="hljs-keyword">return</span>;
+  }
+  <span class="hljs-keyword">const</span> calls = queue[<span class="hljs-number">0</span>].length;
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">let</span> i = <span class="hljs-number">0</span>; i &lt; calls; i++) {
+    <span class="hljs-keyword">const</span> moduleName = queue[<span class="hljs-number">0</span>][i];
+    <span class="hljs-keyword">const</span> method = queue[<span class="hljs-number">1</span>][i];
+    <span class="hljs-keyword">const</span> params = queue[<span class="hljs-number">2</span>][i];
+    <span class="hljs-keyword">let</span> callbacks = queue[<span class="hljs-number">3</span>][i];
+    <span class="hljs-keyword">while</span> (callbacks) {
+      ((num) =&gt; {
+        <span class="hljs-keyword">const</span> index = params.length - num;
+        <span class="hljs-keyword">const</span> callId = params[index];
+        params[index] = (...args) =&gt; {
+          <span class="hljs-comment">// should send msg instead of call directly</span>
+          nativeFlushQueueImmediate(mq.invokeCallbackAndReturnFlushedQueue(callId, args));
+        };
+      })(callbacks);
+      callbacks--;
+    }
+
+    <span class="hljs-keyword">try</span> {
+      realModules[moduleName][method].apply(realModules[moduleName], params);
+    } <span class="hljs-keyword">catch</span> (e) {
+      <span class="hljs-built_in">console</span>.error(e);
+    }
+  }
+}
+
+<span class="hljs-comment">// -------------------------------- webview/jscore</span>
+
+<span class="hljs-comment">// inject nativeFlushQueueImmediate</span>
+<span class="hljs-comment">// pass moduleInfo to webview/jscore</span>
+(<span class="hljs-built_in">window</span> <span class="hljs-keyword">as</span> any).nativeFlushQueueImmediate = nativeFlushQueueImmediate;
+
+<span class="hljs-keyword">const</span> mq = <span class="hljs-keyword">new</span> MessageQueue();
+
+<span class="hljs-comment">// TODO clearTimeout</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setTimeout</span>(<span class="hljs-params">f, m</span>) </span>{
+  mq.rpc(<span class="hljs-string">'timer'</span>, <span class="hljs-string">'setTimeout'</span>, [m, f]);
+}
+
+<span class="hljs-keyword">const</span> stubModules: any = {};
+
+<span class="hljs-built_in">Object</span>.keys(moduleInfo).forEach(m =&gt; {
+  <span class="hljs-keyword">const</span> methods = {};
+  moduleInfo[m].forEach((f) =&gt; {
+    methods[f] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">run</span>(<span class="hljs-params">...args</span>) </span>{
+      <span class="hljs-keyword">return</span> mq.rpc(m, f, args);
+    };
+  });
+  stubModules[m] = methods;
+});
+
+<span class="hljs-comment">// 1 sync</span>
+stubModules.module1.method1(<span class="hljs-number">1</span>);
+
+<span class="hljs-comment">// 2 callback</span>
+stubModules.module2.method2(<span class="hljs-number">2</span>, (seq) =&gt; {
+  <span class="hljs-built_in">console</span>.info(<span class="hljs-string">'[stub] receive from callback'</span>, seq);
+});
+
+<span class="hljs-comment">// 3 async</span>
+setTimeout(() =&gt; {
+  stubModules.module1.method1(<span class="hljs-number">10</span>);
+  stubModules.module2.method2(<span class="hljs-number">20</span>, (seq) =&gt; {
+    <span class="hljs-built_in">console</span>.info(<span class="hljs-string">'[stub] receive from async callback'</span>, seq);
+  });
+}, <span class="hljs-number">100</span>);
+
+nativeFlushQueueImmediate(mq.flushedQueue());
+</code></pre></div>
+  </div>
+  <a href="https://github.com/yiminghe/msg-q">
+    <img style="position: absolute; top: 0; right: 0; border: 0;"
+         src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
+         alt="Fork me on GitHub"
+         data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+  </a>
+  <script>FastClick.attach(document.body);</script>
+  <script src="common.js?nowrap"></script>
+  <script src="emulate.js?nowrap"></script>
+</body>
+
+</html>
