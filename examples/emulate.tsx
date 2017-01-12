@@ -1,30 +1,30 @@
+/* tslint:disable:no-console no-bitwise */
+
 import { MessageQueue } from 'msg-q';
 
 // ---------------------------------- native
 const realModules = {
-  'module1': {
+  module1: {
     method1(seq) {
       console.info('[remote] module1 method1 implementation', seq);
-    }
+    },
   },
 
-  'module2': {
-    method2(seq, callback){
+  module2: {
+    method2(seq, callback) {
       console.info('[remote] module2 method2 implementation', seq);
       callback(seq + 1);
-    }
+    },
   },
 
-  'timer': {
+  timer: {
     setTimeout(m, f) {
       window.setTimeout(f, m);
-    }
-  }
+    },
+  },
 };
 
-
 const moduleInfo = {};
-
 
 Object.keys(realModules).forEach(m => {
   moduleInfo[m] = Object.keys(realModules[m]);
@@ -41,7 +41,7 @@ function nativeFlushQueueImmediate(queue) {
     const params = queue[2][i];
     let callbacks = queue[3][i];
     while (callbacks) {
-      (function (num) {
+      ((num) => {
         const index = params.length - num;
         const callId = params[index];
         params[index] = (...args) => {
@@ -58,16 +58,13 @@ function nativeFlushQueueImmediate(queue) {
       console.error(e);
     }
   }
-
 }
-
 
 // -------------------------------- webview/jscore
 
 // inject nativeFlushQueueImmediate
 // pass moduleInfo to webview/jscore
 (window as any).nativeFlushQueueImmediate = nativeFlushQueueImmediate;
-
 
 const mq = new MessageQueue();
 
@@ -87,7 +84,6 @@ Object.keys(moduleInfo).forEach(m => {
   });
   stubModules[m] = methods;
 });
-
 
 // 1 sync
 stubModules.module1.method1(1);

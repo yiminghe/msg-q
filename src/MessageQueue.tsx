@@ -1,6 +1,11 @@
+/* tslint:disable:no-console no-bitwise */
+
 import invariant from 'invariant';
 
-declare const process, callImmediates, nativeTraceBeginAsyncFlow, nativeFlushQueueImmediate;
+declare const process;
+declare const callImmediates;
+declare const nativeTraceBeginAsyncFlow;
+declare const nativeFlushQueueImmediate;
 
 const TO_JS = 0;
 const TO_NATIVE = 1;
@@ -18,7 +23,7 @@ const DEBUG_INFO_LIMIT = 32;
 
 const __DEV__ = process.env.NODE_ENV !== 'production';
 
-interface SpyData {
+interface ISpyData {
   type: number;
   module?: string;
   method: string|number;
@@ -34,6 +39,20 @@ const guard = (fn) => {
 };
 
 class MessageQueue {
+  static spy(spyOrToggle: boolean|((data: ISpyData) => void)) {
+    if (spyOrToggle === true) {
+      MessageQueue.prototype._spy = info => {
+        console.debug(`${info.type === TO_JS ? 'N->JS' : 'JS->N'} : ` +
+          `${info.module ? (info.module + '.') : ''}${info.method}` +
+          `(${JSON.stringify(info.args)})`);
+      };
+    } else if (spyOrToggle === false) {
+      MessageQueue.prototype._spy = null;
+    } else {
+      MessageQueue.prototype._spy = spyOrToggle;
+    }
+  }
+
   _callableModules: { [key: string]: any };
   _queue: [any[], any[], any[], any[], number];
   _callbacks: any[];
@@ -46,7 +65,7 @@ class MessageQueue {
   _remoteModuleTable: Object;
   _remoteMethodTable: Object;
 
-  __spy?: (data: SpyData) => void;
+  _spy?: (data: ISpyData) => void;
 
   constructor() {
     this._callableModules = {};
@@ -63,31 +82,16 @@ class MessageQueue {
       this._remoteMethodTable = {};
     }
 
-    (this as any).callFunctionReturnFlushedQueue = (this as any).callFunctionReturnFlushedQueue.bind(this);
-    (this as any).callFunctionReturnResultAndFlushedQueue = (this as any).callFunctionReturnResultAndFlushedQueue.bind(this);
+    (this as any).callFunctionReturnFlushedQueue =
+      (this as any).callFunctionReturnFlushedQueue.bind(this);
+    (this as any).callFunctionReturnResultAndFlushedQueue =
+      (this as any).callFunctionReturnResultAndFlushedQueue.bind(this);
     (this as any).flushedQueue = (this as any).flushedQueue.bind(this);
-    (this as any).invokeCallbackAndReturnFlushedQueue = (this as any).invokeCallbackAndReturnFlushedQueue.bind(this);
+    (this as any).invokeCallbackAndReturnFlushedQueue =
+      (this as any).invokeCallbackAndReturnFlushedQueue.bind(this);
   }
 
-  /**
-   * Public APIs
-   */
-
-  static spy(spyOrToggle: boolean|((data: SpyData) => void)) {
-    if (spyOrToggle === true) {
-      MessageQueue.prototype.__spy = info => {
-        console.debug(`${info.type === TO_JS ? 'N->JS' : 'JS->N'} : ` +
-          `${info.module ? (info.module + '.') : ''}${info.method}` +
-          `(${JSON.stringify(info.args)})`);
-      };
-    } else if (spyOrToggle === false) {
-      MessageQueue.prototype.__spy = null;
-    } else {
-      MessageQueue.prototype.__spy = spyOrToggle;
-    }
-  }
-
-  callFunctionReturnFlushedQueue(module: string, method: string, args: Array<any>) {
+  callFunctionReturnFlushedQueue(module: string, method: string, args: any[]) {
     guard(() => {
       this.__callFunction(module, method, args);
       this.__callImmediates();
@@ -96,7 +100,7 @@ class MessageQueue {
     return this.flushedQueue();
   }
 
-  callFunctionReturnResultAndFlushedQueue(module: string, method: string, args: Array<any>) {
+  callFunctionReturnResultAndFlushedQueue(module: string, method: string, args: any[]) {
     let result;
     guard(() => {
       result = this.__callFunction(module, method, args);
@@ -106,7 +110,7 @@ class MessageQueue {
     return [result, this.flushedQueue()];
   }
 
-  invokeCallbackAndReturnFlushedQueue(cbID: number, args: Array<any>) {
+  invokeCallbackAndReturnFlushedQueue(cbID: number, args: any[]) {
     guard(() => {
       this.__invokeCallback(cbID, args);
       this.__callImmediates();
@@ -120,7 +124,9 @@ class MessageQueue {
 
     const queue: any[] = this._queue;
     this._queue = [[], [], [], [], this._callID];
-    __DEV__ && console.debug('pending_calls_to_native_queue', this._queue[0].length);
+    if (__DEV__) {
+      console.debug('pending_calls_to_native_queue', this._queue[0].length);
+    }
     return queue[0].length ? queue : null;
   }
 
@@ -132,9 +138,10 @@ class MessageQueue {
     this._callableModules[name] = module;
   }
 
-  rpc(moduleID: number|string, methodID: number|string, params: Array<any> = []) {
+  rpc(moduleID: number|string, methodID: number|string, params: any[] = []) {
     let real = params;
-    let onFail, onSuccess;
+    let onFail;
+    let onSuccess;
     let l = params.length;
     if (l) {
       if (typeof params[l - 2] === 'function') {
@@ -149,7 +156,9 @@ class MessageQueue {
     this.enqueueNativeCall(moduleID, methodID, real, onFail, onSuccess);
   }
 
-  enqueueNativeCall(moduleID: number|string, methodID: number|string, params: Array<any>, onFail?: Function, onSucc?: Function) {
+  enqueueNativeCall(moduleID: number|string,
+                    methodID: number|string, params: any[],
+                    onFail?: Function, onSucc?: Function) {
     let callbackNum = 0;
     if (onFail || onSucc) {
       if (__DEV__) {
@@ -174,8 +183,9 @@ class MessageQueue {
     (this._queue[CALLBACKS] as any).push(callbackNum);
 
     if (__DEV__) {
-      typeof nativeTraceBeginAsyncFlow !== 'undefined' &&
-      nativeTraceBeginAsyncFlow(TRACE_TAG_REACT_APPS, 'native', this._callID);
+      if (typeof nativeTraceBeginAsyncFlow !== 'undefined') {
+        nativeTraceBeginAsyncFlow(TRACE_TAG_REACT_APPS, 'native', this._callID);
+      }
     }
     this._callID++;
 
@@ -190,20 +200,22 @@ class MessageQueue {
       this._queue = [[], [], [], [], this._callID];
       this._lastFlush = now;
     }
-    __DEV__ && console.debug('pending_calls_to_native_queue', this._queue[0].length);
-    if (__DEV__ && this.__spy) {
-      this.__spy(
+    if (__DEV__) {
+      console.debug('pending_calls_to_native_queue', this._queue[0].length);
+    }
+    if (__DEV__ && this._spy) {
+      this._spy(
         {
           type: TO_NATIVE,
           module: this._remoteModuleTable[moduleID] || moduleID,
           method: this._remoteMethodTable[moduleID] && this._remoteMethodTable[moduleID][methodID] || methodID,
-          args: params
-        }
+          args: params,
+        },
       );
     }
   }
 
-  createDebugLookup(moduleID: number, name: string, methods: Array<string>) {
+  createDebugLookup(moduleID: number, name: string, methods: string[]) {
     if (__DEV__) {
       this._remoteModuleTable[moduleID] = name;
       this._remoteMethodTable[moduleID] = methods;
@@ -216,36 +228,42 @@ class MessageQueue {
 
   __callImmediates() {
     if (typeof callImmediates !== 'undefined') {
-      __DEV__ && console.debug('JSTimersExecution.callImmediates()');
+      if (__DEV__) {
+        console.debug('JSTimersExecution.callImmediates()');
+      }
       guard(() => callImmediates());
     }
   }
 
-  __callFunction(module: string, method: string, args: Array<any>) {
+  __callFunction(module: string, method: string, args: any[]) {
     this._lastFlush = new Date().getTime();
     this._eventLoopStartTime = this._lastFlush;
 
-    __DEV__ && console.group(`${module}.${method}()`);
-    if (__DEV__ && this.__spy) {
-      this.__spy({ type: TO_JS, module, method, args });
+    if (__DEV__) {
+      console.group(`${module}.${method}()`);
+    }
+    if (__DEV__ && this._spy) {
+      this._spy({ type: TO_JS, module, method, args });
     }
     const moduleMethods = this._callableModules[module];
     invariant(
       !!moduleMethods,
       'Module %s is not a registered callable module (calling %s)',
-      module, method
+      module, method,
     );
     invariant(
       !!moduleMethods[method],
       'Method %s does not exist on module %s',
-      method, module
+      method, module,
     );
     const result = moduleMethods[method].apply(moduleMethods, args);
-    __DEV__ && console.groupEnd();
+    if (__DEV__) {
+      console.groupEnd();
+    }
     return result;
   }
 
-  __invokeCallback(cbID: number, args: Array<any>) {
+  __invokeCallback(cbID: number, args: any[]) {
     this._lastFlush = new Date().getTime();
     this._eventLoopStartTime = this._lastFlush;
     const callback = this._callbacks[cbID];
@@ -253,7 +271,8 @@ class MessageQueue {
     if (__DEV__) {
       const debug = this._debugInfo[cbID >> 1];
       const module = debug && this._remoteModuleTable[debug[0]] || debug[0];
-      const method = debug && this._remoteMethodTable[debug[0]] && this._remoteMethodTable[debug[0]][debug[1]] || debug[1];
+      const method = debug && this._remoteMethodTable[debug[0]] &&
+        this._remoteMethodTable[debug[0]][debug[1]] || debug[1];
       if (callback == null) {
         let errorMessage = `Callback with id ${cbID}: ${module}.${method}() not found`;
         if (method) {
@@ -262,12 +281,12 @@ class MessageQueue {
         }
         invariant(
           callback,
-          errorMessage
+          errorMessage,
         );
       }
       const profileName = debug ? '<callback for ' + module + '.' + method + '>' : cbID;
-      if (callback && this.__spy && __DEV__) {
-        this.__spy({ type: TO_JS, module: null, method: profileName, args });
+      if (callback && this._spy && __DEV__) {
+        this._spy({ type: TO_JS, module: null, method: profileName, args });
       }
       if (__DEV__) {
         console.group(
