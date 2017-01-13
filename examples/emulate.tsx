@@ -45,8 +45,8 @@ function nativeFlushQueueImmediate(queue) {
         const index = params.length - num;
         const callId = params[index];
         params[index] = (...args) => {
-          // should send msg instead of call directly
-          nativeFlushQueueImmediate(mq.invokeCallbackAndReturnFlushedQueue(callId, args));
+          // native call js engine directly
+          nativeFlushQueueImmediate((window as any).__batchedBridge.invokeCallbackAndReturnFlushedQueue(callId, args));
         };
       })(callbacks);
       callbacks--;
@@ -60,13 +60,16 @@ function nativeFlushQueueImmediate(queue) {
   }
 }
 
-// -------------------------------- webview/jscore
-
 // inject nativeFlushQueueImmediate
 // pass moduleInfo to webview/jscore
 (window as any).nativeFlushQueueImmediate = nativeFlushQueueImmediate;
 
+// -------------------------------- webview/jscore
+
 const mq = new MessageQueue();
+
+// for native call
+(window as any).__batchedBridge = mq;
 
 // TODO clearTimeout
 function setTimeout(f, m) {
