@@ -57,8 +57,8 @@ webpackJsonp([0,1],[
 	                        args[_key] = arguments[_key];
 	                    }
 	
-	                    // should send msg instead of call directly
-	                    nativeFlushQueueImmediate(mq.invokeCallbackAndReturnFlushedQueue(callId, args));
+	                    // native call js engine directly
+	                    nativeFlushQueueImmediate(window.__batchedBridge.invokeCallbackAndReturnFlushedQueue(callId, args));
 	                };
 	            })(callbacks);
 	            callbacks--;
@@ -74,11 +74,13 @@ webpackJsonp([0,1],[
 	        _loop(i);
 	    }
 	}
-	// -------------------------------- webview/jscore
 	// inject nativeFlushQueueImmediate
 	// pass moduleInfo to webview/jscore
 	window.nativeFlushQueueImmediate = nativeFlushQueueImmediate;
+	// -------------------------------- webview/jscore
 	var mq = new _msgQ.MessageQueue();
+	// for native call
+	window.__batchedBridge = mq;
 	// TODO clearTimeout
 	function setTimeout(f, m) {
 	    mq.rpc('timer', 'setTimeout', [m, f]);
@@ -183,7 +185,7 @@ webpackJsonp([0,1],[
 	                console.debug((info.type === TO_JS ? 'N->JS' : 'JS->N') + ' : ' + ('' + (info.module ? info.module + '.' : '') + info.method) + ('(' + JSON.stringify(info.args) + ')'));
 	            };
 	        } else if (spyOrToggle === false) {
-	            MessageQueue.prototype._spy = null;
+	            MessageQueue.prototype._spy = undefined;
 	        } else {
 	            MessageQueue.prototype._spy = spyOrToggle;
 	        }

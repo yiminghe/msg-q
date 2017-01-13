@@ -316,8 +316,8 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
         <span class="hljs-keyword">const</span> index = params.length - num;
         <span class="hljs-keyword">const</span> callId = params[index];
         params[index] = (...args) =&gt; {
-          <span class="hljs-comment">// should send msg instead of call directly</span>
-          nativeFlushQueueImmediate(mq.invokeCallbackAndReturnFlushedQueue(callId, args));
+          <span class="hljs-comment">// native call js engine directly</span>
+          nativeFlushQueueImmediate((<span class="hljs-built_in">window</span> <span class="hljs-keyword">as</span> any).__batchedBridge.invokeCallbackAndReturnFlushedQueue(callId, args));
         };
       })(callbacks);
       callbacks--;
@@ -331,13 +331,16 @@ Monokai Sublime style. Derived from Monokai by noformnocontent http://nn.mit-lic
   }
 }
 
-<span class="hljs-comment">// -------------------------------- webview/jscore</span>
-
 <span class="hljs-comment">// inject nativeFlushQueueImmediate</span>
 <span class="hljs-comment">// pass moduleInfo to webview/jscore</span>
 (<span class="hljs-built_in">window</span> <span class="hljs-keyword">as</span> any).nativeFlushQueueImmediate = nativeFlushQueueImmediate;
 
+<span class="hljs-comment">// -------------------------------- webview/jscore</span>
+
 <span class="hljs-keyword">const</span> mq = <span class="hljs-keyword">new</span> MessageQueue();
+
+<span class="hljs-comment">// for native call</span>
+(<span class="hljs-built_in">window</span> <span class="hljs-keyword">as</span> any).__batchedBridge = mq;
 
 <span class="hljs-comment">// TODO clearTimeout</span>
 <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">setTimeout</span>(<span class="hljs-params">f, m</span>) </span>{
